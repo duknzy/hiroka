@@ -106,7 +106,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
     setShowInlineAddMat(false);
   };
 
-  // Circular progress calculations
+  // Circular progress calculations - Expansive roomy dial (radius 160, diameter 320 in 360x360 box)
   let progressRatio = 0;
   if (mode === 'stopwatch') {
     progressRatio = (seconds % 3600) / 3600;
@@ -114,11 +114,10 @@ export const TimerView: React.FC<TimerViewProps> = ({
     const total = isBreak ? 5 * 60 : 25 * 60;
     progressRatio = Math.max(0, Math.min(1, (total - seconds) / total));
   } else {
-    // arbitrary standard 60 min loop if countdown
     progressRatio = Math.max(0, Math.min(1, seconds / (60 * 60)));
   }
 
-  const radius = 120;
+  const radius = 160;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - progressRatio * circumference;
 
@@ -128,7 +127,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
   return (
     <div
-      className={`min-h-[80vh] flex flex-col justify-between rounded-3xl transition-all duration-300 relative overflow-hidden ${
+      className={`min-h-[82vh] flex flex-col justify-between rounded-3xl transition-all duration-300 relative overflow-hidden ${
         isFullscreen
           ? 'fixed inset-0 z-50 bg-slate-950 text-white p-6 sm:p-12 flex flex-col justify-between'
           : 'bg-white/90 backdrop-blur-md border border-slate-200 p-6 sm:p-8 shadow-xs'
@@ -136,7 +135,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
     >
       {/* Ambient background glow according to selected subject */}
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl opacity-15 pointer-events-none transition-colors duration-700"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full blur-3xl opacity-15 pointer-events-none transition-colors duration-700"
         style={{ backgroundColor: themeColor }}
       />
 
@@ -179,7 +178,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
       </div>
 
       {/* Center Focus Area */}
-      <div className="relative z-10 py-6 flex flex-col items-center">
+      <div className="relative z-10 py-4 sm:py-6 flex flex-col items-center">
         {subjects.length === 0 && (
           <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs flex items-center gap-2 max-w-md">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -188,7 +187,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
         )}
 
         {/* Mode Switcher */}
-        <div className="flex flex-col items-center gap-2.5 mb-6">
+        <div className="flex flex-col items-center gap-2.5 mb-5 sm:mb-6">
           <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-semibold">
             <button
               onClick={() => changeMode('stopwatch')}
@@ -245,13 +244,13 @@ export const TimerView: React.FC<TimerViewProps> = ({
           )}
         </div>
 
-        {/* Circular Progress & Huge Digital Clock */}
-        <div className="relative flex items-center justify-center w-72 h-72 sm:w-80 sm:h-80 my-2">
-          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 280 280">
+        {/* Expansive Circular Progress & Perfectly Scaled Digital Clock */}
+        <div className="relative flex items-center justify-center w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] my-2">
+          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 360 360">
             {/* Background Ring */}
             <circle
-              cx="140"
-              cy="140"
+              cx="180"
+              cy="180"
               r={radius}
               stroke="currentColor"
               strokeWidth="9"
@@ -260,8 +259,8 @@ export const TimerView: React.FC<TimerViewProps> = ({
             />
             {/* Progress Arc */}
             <circle
-              cx="140"
-              cy="140"
+              cx="180"
+              cy="180"
               r={radius}
               stroke={themeColor}
               strokeWidth="10"
@@ -271,29 +270,40 @@ export const TimerView: React.FC<TimerViewProps> = ({
               className="transition-all duration-500 ease-linear"
               fill="none"
               style={{
-                filter: isActive ? `drop-shadow(0 0 10px ${themeColor}70)` : undefined,
+                filter: isActive ? `drop-shadow(0 0 12px ${themeColor}70)` : undefined,
               }}
             />
           </svg>
 
-          {/* Center Digital Clock Display */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none">
+          {/* Center Digital Clock Display - ample padding prevents any overlap */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none px-6">
             <div
-              className={`font-mono tabular-nums font-black tracking-tight transition-all ${
-                isFullscreen ? 'text-7xl sm:text-8xl text-white' : 'text-6xl sm:text-7xl text-slate-900'
+              className={`font-mono tabular-nums font-black tracking-tight transition-all flex items-baseline justify-center ${
+                isFullscreen
+                  ? hrs > 0
+                    ? 'text-6xl sm:text-7xl md:text-8xl text-white'
+                    : 'text-7xl sm:text-8xl md:text-9xl text-white'
+                  : hrs > 0
+                  ? 'text-4xl sm:text-5xl md:text-6xl text-slate-900'
+                  : 'text-5xl sm:text-6xl md:text-7xl text-slate-900'
               }`}
               style={{
                 textShadow: isActive ? `0 0 28px ${themeColor}30` : undefined,
               }}
             >
-              {hrs > 0 && `${String(hrs).padStart(2, '0')}:`}
-              {String(mins).padStart(2, '0')}
-              <span className="text-4xl text-slate-400 font-normal">:</span>
-              {String(secs).padStart(2, '0')}
+              {hrs > 0 && (
+                <>
+                  <span>{String(hrs).padStart(2, '0')}</span>
+                  <span className="text-slate-300 dark:text-slate-600 font-light mx-0.5">:</span>
+                </>
+              )}
+              <span>{String(mins).padStart(2, '0')}</span>
+              <span className="text-slate-300 dark:text-slate-600 font-light mx-0.5">:</span>
+              <span>{String(secs).padStart(2, '0')}</span>
             </div>
 
-            <div className="flex items-center justify-center mt-3">
-              <p className="text-xs font-semibold text-slate-400">
+            <div className="flex items-center justify-center mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm font-semibold text-slate-400">
                 {isBreak
                   ? '深呼吸をして脳を休めましょう'
                   : isActive
@@ -305,7 +315,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
         </div>
 
         {/* Big Action Controls */}
-        <div className="flex items-center justify-center gap-6 my-6">
+        <div className="flex items-center justify-center gap-6 my-5 sm:my-6">
           <button
             onClick={resetTimer}
             className="p-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all cursor-pointer"
