@@ -20,6 +20,8 @@ import {
   deleteMockExamDoc,
   logoutUser,
   loginAsGuest,
+  getLocalFallbackData,
+  saveLocalFallbackData,
   DEFAULT_EMPTY_TARGET,
   DEFAULT_EMPTY_PLAN,
 } from './firebase/service';
@@ -59,18 +61,45 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // App data state (Clean slate per user, saved to Firebase)
-  const [target, setTarget] = useState<TargetSchool>(DEFAULT_EMPTY_TARGET);
-  const [plan, setPlan] = useState<StudyPlan>(DEFAULT_EMPTY_PLAN);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
-  const [logs, setLogs] = useState<StudyLog[]>([]);
-  const [diary, setDiary] = useState<DiaryEntry[]>([]);
-  const [todos, setTodos] = useState<TodoTask[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
-  const [mockExams, setMockExams] = useState<MockExamRecord[]>([]);
+  // App data state
+  const [target, setTarget] = useState<TargetSchool>(() => {
+    const fb = getLocalFallbackData();
+    return fb.target || DEFAULT_EMPTY_TARGET;
+  });
+  const [plan, setPlan] = useState<StudyPlan>(() => {
+    const fb = getLocalFallbackData();
+    return fb.plan || DEFAULT_EMPTY_PLAN;
+  });
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.subjects || [];
+  });
+  const [materials, setMaterials] = useState<StudyMaterial[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.materials || [];
+  });
+  const [logs, setLogs] = useState<StudyLog[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.logs || [];
+  });
+  const [diary, setDiary] = useState<DiaryEntry[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.diary || [];
+  });
+  const [todos, setTodos] = useState<TodoTask[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.todos || [];
+  });
+  const [schedule, setSchedule] = useState<ScheduleItem[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.schedule || [];
+  });
+  const [mockExams, setMockExams] = useState<MockExamRecord[]>(() => {
+    const fb = getLocalFallbackData();
+    return fb.mockExams || [];
+  });
 
-  // Wallpaper settings (Saved to local storage per user's request)
+  // Wallpaper settings (Saved to local storage)
   const [wallpaperSettings, setWallpaperSettings] = useState<WallpaperSettings>(() =>
     loadWallpaperSettings()
   );
@@ -84,7 +113,11 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
 
-  // 1. Firebase Auth listener
+  // Quick launch contextual ids
+  const [activeSubjectId, setActiveSubjectId] = useState<string>('');
+  const [activeMaterialId, setActiveMaterialId] = useState<string>('');
+
+  // 1. Firebase Auth listener with safe anonymous fallback
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -94,7 +127,7 @@ export default function App() {
         try {
           await loginAsGuest();
         } catch (e) {
-          console.warn('Anonymous login fallback:', e);
+          // If Anonymous login is not enabled in Firebase console yet, gracefully allow local mode
           setUser(null);
           setAuthLoading(false);
         }
@@ -106,79 +139,106 @@ export default function App() {
 
   // 2. Real-time Firestore listeners for current user
   useEffect(() => {
-    if (!user) {
-      setSubjects([]);
-      setMaterials([]);
-      setLogs([]);
-      setDiary([]);
-      setTodos([]);
-      setSchedule([]);
-      setMockExams([]);
-      setTarget(DEFAULT_EMPTY_TARGET);
-      setPlan(DEFAULT_EMPTY_PLAN);
-      return;
-    }
-
+    if (!user) return;
     const uid = user.uid;
 
     const userDocRef = doc(db, 'users', uid);
-    const unsubUser = onSnapshot(userDocRef, (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.target) setTarget(data.target);
-        if (data.plan) setPlan(data.plan);
-      }
-    });
+    const unsubUser = onSnapshot(
+      userDocRef,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.target) setTarget(data.target);
+          if (data.plan) setPlan(data.plan);
+        }
+      },
+      () => {}
+    );
 
     const subjectsRef = collection(db, 'users', uid, 'subjects');
-    const unsubSubjects = onSnapshot(subjectsRef, (snap) => {
-      const items: Subject[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setSubjects(items);
-    });
+    const unsubSubjects = onSnapshot(
+      subjectsRef,
+      (snap) => {
+        const items: Subject[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setSubjects(items);
+        saveLocalFallbackData('subjects', items);
+      },
+      () => {}
+    );
 
     const materialsRef = collection(db, 'users', uid, 'materials');
-    const unsubMaterials = onSnapshot(materialsRef, (snap) => {
-      const items: StudyMaterial[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setMaterials(items);
-    });
+    const unsubMaterials = onSnapshot(
+      materialsRef,
+      (snap) => {
+        const items: StudyMaterial[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setMaterials(items);
+        saveLocalFallbackData('materials', items);
+      },
+      () => {}
+    );
 
     const logsRef = collection(db, 'users', uid, 'logs');
     const logsQuery = query(logsRef, orderBy('timestamp', 'desc'));
-    const unsubLogs = onSnapshot(logsQuery, (snap) => {
-      const items: StudyLog[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setLogs(items);
-    });
+    const unsubLogs = onSnapshot(
+      logsQuery,
+      (snap) => {
+        const items: StudyLog[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setLogs(items);
+        saveLocalFallbackData('logs', items);
+      },
+      () => {}
+    );
 
     const diaryRef = collection(db, 'users', uid, 'diary');
-    const unsubDiary = onSnapshot(diaryRef, (snap) => {
-      const items: DiaryEntry[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setDiary(items);
-    });
+    const unsubDiary = onSnapshot(
+      diaryRef,
+      (snap) => {
+        const items: DiaryEntry[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setDiary(items);
+        saveLocalFallbackData('diary', items);
+      },
+      () => {}
+    );
 
     const todosRef = collection(db, 'users', uid, 'todos');
-    const unsubTodos = onSnapshot(todosRef, (snap) => {
-      const items: TodoTask[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setTodos(items);
-    });
+    const unsubTodos = onSnapshot(
+      todosRef,
+      (snap) => {
+        const items: TodoTask[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setTodos(items);
+        saveLocalFallbackData('todos', items);
+      },
+      () => {}
+    );
 
     const scheduleRef = collection(db, 'users', uid, 'schedule');
-    const unsubSchedule = onSnapshot(scheduleRef, (snap) => {
-      const items: ScheduleItem[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setSchedule(items);
-    });
+    const unsubSchedule = onSnapshot(
+      scheduleRef,
+      (snap) => {
+        const items: ScheduleItem[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setSchedule(items);
+        saveLocalFallbackData('schedule', items);
+      },
+      () => {}
+    );
 
     const mockRef = collection(db, 'users', uid, 'mockExams');
-    const unsubMock = onSnapshot(mockRef, (snap) => {
-      const items: MockExamRecord[] = [];
-      snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
-      setMockExams(items);
-    });
+    const unsubMock = onSnapshot(
+      mockRef,
+      (snap) => {
+        const items: MockExamRecord[] = [];
+        snap.forEach((d) => items.push({ id: d.id, ...(d.data() as any) }));
+        setMockExams(items);
+        saveLocalFallbackData('mockExams', items);
+      },
+      () => {}
+    );
 
     return () => {
       unsubUser();
@@ -192,122 +252,167 @@ export default function App() {
     };
   }, [user]);
 
+  const effectiveUid = user?.uid || 'local_session';
+
   // CRUD Actions
   const handleSaveLog = async (logData: Omit<StudyLog, 'id' | 'timestamp'>) => {
-    if (!user) return;
     const id = `log_${Date.now()}`;
-    await saveLogDoc(user.uid, {
+    const newLog: StudyLog = {
       ...logData,
       id,
       timestamp: Date.now(),
-    });
+    };
+    setLogs((prev) => [newLog, ...prev]);
+    await saveLogDoc(effectiveUid, newLog);
   };
 
   const handleDeleteLog = async (id: string) => {
-    if (!user) return;
-    await deleteLogDoc(user.uid, id);
+    setLogs((prev) => prev.filter((l) => l.id !== id));
+    await deleteLogDoc(effectiveUid, id);
   };
 
   const handleUpdateTarget = async (newTarget: TargetSchool) => {
-    if (!user) return;
     setTarget(newTarget);
-    await saveUserProfile(user.uid, newTarget, plan);
+    await saveUserProfile(effectiveUid, newTarget, plan);
   };
 
   const handleUpdatePlan = async (newPlan: StudyPlan) => {
-    if (!user) return;
     setPlan(newPlan);
-    await saveUserProfile(user.uid, target, newPlan);
+    await saveUserProfile(effectiveUid, target, newPlan);
   };
 
   const handleAddSubject = async (sub: Omit<Subject, 'id'>) => {
-    if (!user) return;
     const id = `sub_${Date.now()}`;
-    await saveSubjectDoc(user.uid, { ...sub, id });
+    const newSub: Subject = { ...sub, id };
+    setSubjects((prev) => [...prev, newSub]);
+    await saveSubjectDoc(effectiveUid, newSub);
   };
 
   const handleDeleteSubject = async (id: string) => {
-    if (!user) return;
-    await deleteSubjectDoc(user.uid, id);
+    setSubjects((prev) => prev.filter((s) => s.id !== id));
+    await deleteSubjectDoc(effectiveUid, id);
   };
 
   const handleAddMaterial = async (mat: Omit<StudyMaterial, 'id'>) => {
-    if (!user) return;
     const id = `mat_${Date.now()}`;
-    await saveMaterialDoc(user.uid, { ...mat, id });
+    const newMat: StudyMaterial = { ...mat, id };
+    setMaterials((prev) => [...prev, newMat]);
+    await saveMaterialDoc(effectiveUid, newMat);
   };
 
   const handleUpdateMaterial = async (mat: StudyMaterial) => {
-    if (!user) return;
-    await saveMaterialDoc(user.uid, mat);
+    setMaterials((prev) => prev.map((m) => (m.id === mat.id ? mat : m)));
+    await saveMaterialDoc(effectiveUid, mat);
   };
 
   const handleDeleteMaterial = async (id: string) => {
-    if (!user) return;
-    await deleteMaterialDoc(user.uid, id);
+    setMaterials((prev) => prev.filter((m) => m.id !== id));
+    await deleteMaterialDoc(effectiveUid, id);
   };
 
   const handleAddTodo = async (task: Omit<TodoTask, 'id'>) => {
-    if (!user) return;
     const id = `todo_${Date.now()}`;
-    await saveTodoDoc(user.uid, { ...task, id });
+    const newTodo: TodoTask = { ...task, id };
+    setTodos((prev) => [...prev, newTodo]);
+    await saveTodoDoc(effectiveUid, newTodo);
   };
 
   const handleDeleteTodo = async (id: string) => {
-    if (!user) return;
-    await deleteTodoDoc(user.uid, id);
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+    await deleteTodoDoc(effectiveUid, id);
   };
 
   const handleToggleTodo = async (id: string) => {
-    if (!user) return;
     const todo = todos.find((t) => t.id === id);
     if (!todo) return;
-    await saveTodoDoc(user.uid, { ...todo, completed: !todo.completed });
+    const updated = { ...todo, completed: !todo.completed };
+    setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    await saveTodoDoc(effectiveUid, updated);
   };
 
   const handleAddScheduleItem = async (item: Omit<ScheduleItem, 'id'>) => {
-    if (!user) return;
     const id = `sch_${Date.now()}`;
-    await saveScheduleDoc(user.uid, { ...item, id });
+    const newItem: ScheduleItem = { ...item, id };
+    setSchedule((prev) => [...prev, newItem]);
+    await saveScheduleDoc(effectiveUid, newItem);
   };
 
   const handleDeleteScheduleItem = async (id: string) => {
-    if (!user) return;
-    await deleteScheduleDoc(user.uid, id);
+    setSchedule((prev) => prev.filter((s) => s.id !== id));
+    await deleteScheduleDoc(effectiveUid, id);
   };
 
   const handleToggleScheduleItem = async (id: string) => {
-    if (!user) return;
     const item = schedule.find((s) => s.id === id);
     if (!item) return;
-    await saveScheduleDoc(user.uid, { ...item, isCompleted: !item.isCompleted });
+    const updated = { ...item, isCompleted: !item.isCompleted };
+    setSchedule((prev) => prev.map((s) => (s.id === id ? updated : s)));
+    await saveScheduleDoc(effectiveUid, updated);
   };
 
   const handleSaveDiary = async (entry: Omit<DiaryEntry, 'id'>) => {
-    if (!user) return;
     const existing = diary.find((d) => d.date === entry.date);
     const id = existing?.id || `diary_${entry.date}`;
-    await saveDiaryDoc(user.uid, { ...entry, id });
+    const newEntry: DiaryEntry = { ...entry, id };
+    setDiary((prev) => {
+      const idx = prev.findIndex((d) => d.date === entry.date);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newEntry;
+        return copy;
+      }
+      return [newEntry, ...prev];
+    });
+    await saveDiaryDoc(effectiveUid, newEntry);
   };
 
   const handleDeleteDiary = async (id: string) => {
-    if (!user) return;
-    await deleteDiaryDoc(user.uid, id);
+    setDiary((prev) => prev.filter((d) => d.id !== id));
+    await deleteDiaryDoc(effectiveUid, id);
   };
 
   const handleAddMockExam = async (record: Omit<MockExamRecord, 'id'>) => {
-    if (!user) return;
     const id = `mock_${Date.now()}`;
-    await saveMockExamDoc(user.uid, { ...record, id });
+    const newMock: MockExamRecord = { ...record, id };
+    setMockExams((prev) => [newMock, ...prev]);
+    await saveMockExamDoc(effectiveUid, newMock);
   };
 
   const handleDeleteMockExam = async (id: string) => {
-    if (!user) return;
-    await deleteMockExamDoc(user.uid, id);
+    setMockExams((prev) => prev.filter((m) => m.id !== id));
+    await deleteMockExamDoc(effectiveUid, id);
   };
 
   const handleLogout = async () => {
     await logoutUser();
+  };
+
+  // Launch contextual timer from material
+  const handleStartTimerForMaterial = (subjectId: string, materialId: string) => {
+    setActiveSubjectId(subjectId);
+    setActiveMaterialId(materialId);
+    setIsTimerOpen(true);
+  };
+
+  // Launch contextual manual log from material
+  const handleManualLogForMaterial = (subjectId: string, materialId: string) => {
+    setActiveSubjectId(subjectId);
+    setActiveMaterialId(materialId);
+    setIsManualLogOpen(true);
+  };
+
+  // Open default timer
+  const handleOpenGeneralTimer = () => {
+    setActiveSubjectId(subjects[0]?.id || '');
+    setActiveMaterialId('');
+    setIsTimerOpen(true);
+  };
+
+  // Open default manual log
+  const handleOpenGeneralManualLog = () => {
+    setActiveSubjectId(subjects[0]?.id || '');
+    setActiveMaterialId('');
+    setIsManualLogOpen(true);
   };
 
   // Wallpaper Handlers
@@ -350,19 +455,18 @@ export default function App() {
               backgroundImage: `url(${wallpaperSettings.imageUrl})`,
               opacity: wallpaperSettings.opacity,
               filter: `blur(${wallpaperSettings.blur}px)`,
-              transform: 'scale(1.05)', // Prevent blur edge clipping
+              transform: 'scale(1.05)',
             }}
           />
-          {/* Tone overlay tint */}
           <div
             className={`absolute inset-0 ${
-              wallpaperSettings.overlay === 'dark' ? 'bg-slate-950/20' : 'bg-white/20'
+              wallpaperSettings.overlay === 'dark' ? 'bg-slate-950/25' : 'bg-white/20'
             }`}
           />
         </div>
       )}
 
-      {/* Main App Content */}
+      {/* Main App Container */}
       <div className="relative z-10 flex-1 flex flex-col">
         {/* Navbar */}
         <Navbar
@@ -372,30 +476,33 @@ export default function App() {
           streakDays={streakDays}
           user={user}
           hasCustomWallpaper={!!wallpaperSettings.imageUrl}
-          onOpenTimer={() => setIsTimerOpen(true)}
-          onOpenManualLog={() => setIsManualLogOpen(true)}
+          onOpenTimer={handleOpenGeneralTimer}
+          onOpenManualLog={handleOpenGeneralManualLog}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenWallpaper={() => setIsWallpaperOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
           onLogout={handleLogout}
         />
 
-        {/* Views Container */}
+        {/* Views */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {activeTab === 'dashboard' && (
             <DashboardView
               subjects={subjects}
+              materials={materials}
               logs={logs}
               target={target}
               plan={plan}
               todos={todos}
               schedule={schedule}
               diary={diary}
-              onOpenTimer={() => setIsTimerOpen(true)}
-              onOpenManualLog={() => setIsManualLogOpen(true)}
+              onOpenTimer={handleOpenGeneralTimer}
+              onOpenManualLog={handleOpenGeneralManualLog}
               onOpenPlan={() => setActiveTab('plan')}
               onOpenDiaryTab={() => setActiveTab('diary')}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenMaterialsTab={() => setActiveTab('materials')}
+              onStartTimerForMaterial={handleStartTimerForMaterial}
               onToggleTodo={handleToggleTodo}
               onAddTodo={handleAddTodo}
               onDeleteLog={handleDeleteLog}
@@ -438,6 +545,8 @@ export default function App() {
               onAddMaterial={handleAddMaterial}
               onUpdateMaterial={handleUpdateMaterial}
               onDeleteMaterial={handleDeleteMaterial}
+              onStartTimerForMaterial={handleStartTimerForMaterial}
+              onManualLogForMaterial={handleManualLogForMaterial}
             />
           )}
 
@@ -480,7 +589,11 @@ export default function App() {
         onClose={() => setIsTimerOpen(false)}
         subjects={subjects}
         materials={materials}
+        initialSubjectId={activeSubjectId}
+        initialMaterialId={activeMaterialId}
         onSaveLog={handleSaveLog}
+        onAddMaterial={handleAddMaterial}
+        onUpdateMaterial={handleUpdateMaterial}
       />
 
       <ManualLogModal
@@ -488,7 +601,11 @@ export default function App() {
         onClose={() => setIsManualLogOpen(false)}
         subjects={subjects}
         materials={materials}
+        initialSubjectId={activeSubjectId}
+        initialMaterialId={activeMaterialId}
         onSaveLog={handleSaveLog}
+        onAddMaterial={handleAddMaterial}
+        onUpdateMaterial={handleUpdateMaterial}
       />
 
       <SettingsModal

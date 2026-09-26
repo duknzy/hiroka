@@ -7,6 +7,7 @@ import {
   TodoTask,
   ScheduleItem,
   DiaryEntry,
+  StudyMaterial,
 } from '../types';
 import { CountdownBanner } from './CountdownBanner';
 import {
@@ -18,10 +19,13 @@ import {
   BookOpen,
   Trash2,
   BookMarked,
+  Play,
+  Sparkles,
 } from 'lucide-react';
 
 interface DashboardViewProps {
   subjects: Subject[];
+  materials: StudyMaterial[];
   logs: StudyLog[];
   target: TargetSchool;
   plan: StudyPlan;
@@ -33,6 +37,8 @@ interface DashboardViewProps {
   onOpenPlan: () => void;
   onOpenDiaryTab: () => void;
   onOpenSettings: () => void;
+  onOpenMaterialsTab: () => void;
+  onStartTimerForMaterial: (subjectId: string, materialId: string) => void;
   onToggleTodo: (id: string) => void;
   onAddTodo: (task: Omit<TodoTask, 'id'>) => void;
   onDeleteLog: (id: string) => void;
@@ -41,6 +47,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   subjects,
+  materials,
   logs,
   target,
   plan,
@@ -52,6 +59,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenPlan,
   onOpenDiaryTab,
   onOpenSettings,
+  onOpenMaterialsTab,
+  onStartTimerForMaterial,
   onToggleTodo,
   onAddTodo,
   onDeleteLog,
@@ -171,9 +180,66 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onOpenSettings={onOpenSettings}
       />
 
+      {/* Quick Launch Active Materials Strip */}
+      {materials.length > 0 && (
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-indigo-600" />
+              学習中の参考書から即スタート
+            </h2>
+            <button
+              onClick={onOpenMaterialsTab}
+              className="text-xs text-indigo-600 font-semibold hover:underline cursor-pointer"
+            >
+              参考書一覧 ({materials.length}) →
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 overflow-x-auto pb-1">
+            {materials.slice(0, 5).map((mat) => {
+              const sub = subjects.find((s) => s.id === mat.subjectId);
+              const percent = Math.min(100, Math.round((mat.currentUnit / mat.totalUnits) * 100));
+              return (
+                <div
+                  key={mat.id}
+                  className="bg-slate-50/90 hover:bg-slate-100/90 rounded-xl border border-slate-200 p-3 min-w-[200px] shrink-0 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1 text-[11px]">
+                      <span
+                        className="font-semibold px-1.5 py-0.5 rounded"
+                        style={{
+                          backgroundColor: `${sub?.color || '#3B82F6'}15`,
+                          color: sub?.color || '#3B82F6',
+                        }}
+                      >
+                        {sub?.name}
+                      </span>
+                      <span className="font-mono text-slate-400">{percent}%</span>
+                    </div>
+                    <div className="font-bold text-xs text-slate-800 truncate mb-2">
+                      {mat.title}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => onStartTimerForMaterial(mat.subjectId, mat.id)}
+                    className="w-full py-1 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    <Play className="w-3 h-3 fill-white" />
+                    この教材を計測
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 2. Top Analytics: Weekly Bar Chart + Subject Ratio */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <div className="lg:col-span-2 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -230,7 +296,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Subject Breakdown */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -296,7 +362,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 3. Heatmap */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-bold text-slate-900">学習継続ヒートマップ (過去5週間)</h2>
@@ -336,7 +402,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* 4. Action Center: Tasks + Today's Reflection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: TODOs */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-indigo-600" />
@@ -352,7 +418,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <select
                 value={newTodoSubject}
                 onChange={(e) => setNewTodoSubject(e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none"
+                className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700 focus:outline-none"
               >
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -366,11 +432,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               placeholder="新しいTODOを追加 (例: シス単 100語復習)"
               value={newTodoTitle}
               onChange={(e) => setNewTodoTitle(e.target.value)}
-              className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-500"
+              className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 focus:outline-none focus:border-indigo-500"
             />
             <button
               type="submit"
-              className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors cursor-pointer shrink-0"
+              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors cursor-pointer shrink-0"
             >
               追加
             </button>
@@ -426,7 +492,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Right: Today's Reflection */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -463,7 +529,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     value={goodPoints}
                     onChange={(e) => setGoodPoints(e.target.value)}
                     placeholder="例: 数学の微積分を集中して解き切った。"
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
@@ -476,7 +542,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     value={improvements}
                     onChange={(e) => setImprovements(e.target.value)}
                     placeholder="例: 途中でスマホを見てしまった。明日は別室に置く。"
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
@@ -489,7 +555,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     value={tomorrowCommitment}
                     onChange={(e) => setTomorrowCommitment(e.target.value)}
                     placeholder="例: 朝7時からシス単100個＋物理の演習2題をやる！"
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2 text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
@@ -503,7 +569,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs cursor-pointer"
+                    className="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs cursor-pointer"
                   >
                     日誌を保存
                   </button>
@@ -557,15 +623,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 5. Recent Study Logs Table (WITHOUT UNDERSTANDING RATING, KEEPING MEMO) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+      {/* 5. Recent Study Logs Table (WITH DIRECT RE-LAUNCH ACTION!) */}
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-indigo-600" />
               直近の学習ログ
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">過去の勉強時間の確認と修正</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              記録からワンクリックで同じ教材のタイマーを即座に再開できます
+            </p>
           </div>
           <button
             onClick={onOpenManualLog}
@@ -589,7 +657,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <th className="py-2.5 px-3 font-semibold">参考書 / 範囲</th>
                   <th className="py-2.5 px-3 font-semibold text-right">勉強時間</th>
                   <th className="py-2.5 px-3 font-semibold">メモ</th>
-                  <th className="py-2.5 px-3 font-semibold text-right">操作</th>
+                  <th className="py-2.5 px-3 font-semibold text-right">クイックアクション</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -612,23 +680,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </span>
                       </td>
                       <td className="py-2.5 px-3 max-w-[200px] truncate">
-                        <span className="font-medium text-slate-800">{log.materialTitle || '自習'}</span>
+                        <span className="font-semibold text-slate-800">{log.materialTitle || '自習'}</span>
                         {log.range && <span className="text-slate-400 text-[11px] ml-1.5">({log.range})</span>}
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono tabular-nums font-bold text-slate-900 whitespace-nowrap">
                         {log.durationMinutes}分
                       </td>
-                      <td className="py-2.5 px-3 max-w-[280px] truncate text-slate-600">
+                      <td className="py-2.5 px-3 max-w-[240px] truncate text-slate-600">
                         {log.memo || '-'}
                       </td>
                       <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => onDeleteLog(log.id)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-1"
-                          title="削除"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Direct Launch: Record from Log! */}
+                          <button
+                            onClick={() => onStartTimerForMaterial(log.subjectId, log.materialId || '')}
+                            className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                            title="この教材の続きを計測"
+                          >
+                            <Play className="w-3 h-3 fill-indigo-600" />
+                            続きを計測
+                          </button>
+                          <button
+                            onClick={() => onDeleteLog(log.id)}
+                            className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-1"
+                            title="削除"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
