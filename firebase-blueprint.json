@@ -1,0 +1,173 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account settings and target university exam settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "targetName": { "type": "string" },
+        "targetFaculty": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetStream": { "type": "string" },
+        "targetGrade": { "type": "string" },
+        "examDateKyotsu": { "type": "string" },
+        "examDateSecondary": { "type": "string" },
+        "targetDeviation": { "type": "number" },
+        "targetTotalHours": { "type": "number" },
+        "weeklyTargetHours": { "type": "number" },
+        "dailyWeekdayHours": { "type": "number" },
+        "dailyWeekendHours": { "type": "number" },
+        "monthlyGoal": { "type": "string" },
+        "focusTheme": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "User-defined study subject",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "color": { "type": "string" },
+        "targetHours": { "type": "number" },
+        "idealWeight": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "name", "color"]
+    },
+    "StudyMaterial": {
+      "title": "StudyMaterial",
+      "description": "User-defined study material or textbook",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "totalUnits": { "type": "number" },
+        "currentUnit": { "type": "number" },
+        "unitType": { "type": "string" },
+        "currentLap": { "type": "number" },
+        "targetLaps": { "type": "number" },
+        "priority": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["userId", "title", "subjectId", "totalUnits", "currentUnit"]
+    },
+    "StudyLog": {
+      "title": "StudyLog",
+      "description": "Study duration log entry",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "materialId": { "type": "string" },
+        "materialTitle": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "range": { "type": "string" },
+        "memo": { "type": "string" }
+      },
+      "required": ["userId", "date", "timestamp", "subjectId", "durationMinutes"]
+    },
+    "DiaryEntry": {
+      "title": "DiaryEntry",
+      "description": "Daily reflection entry",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "goodPoints": { "type": "string" },
+        "improvements": { "type": "string" },
+        "tomorrowCommitment": { "type": "string" },
+        "rating": { "type": "number" }
+      },
+      "required": ["userId", "date"]
+    },
+    "TodoTask": {
+      "title": "TodoTask",
+      "description": "Actionable study task",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "priority": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "estimatedMinutes": { "type": "number" }
+      },
+      "required": ["userId", "title", "completed"]
+    },
+    "ScheduleItem": {
+      "title": "ScheduleItem",
+      "description": "Time block schedule item",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "title": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "category": { "type": "string" }
+      },
+      "required": ["userId", "date", "startTime", "endTime", "title"]
+    },
+    "MockExamRecord": {
+      "title": "MockExamRecord",
+      "description": "Mock examination score record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "date": { "type": "string" },
+        "overallDeviation": { "type": "number" },
+        "overallScore": { "type": "number" },
+        "maxScore": { "type": "number" },
+        "judgment": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["userId", "name", "date", "overallDeviation"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and target settings"
+    },
+    "/users/{userId}/subjects/{subjectId}": {
+      "schema": "Subject",
+      "description": "User-defined subjects"
+    },
+    "/users/{userId}/materials/{materialId}": {
+      "schema": "StudyMaterial",
+      "description": "User study materials"
+    },
+    "/users/{userId}/logs/{logId}": {
+      "schema": "StudyLog",
+      "description": "User study time logs"
+    },
+    "/users/{userId}/diary/{diaryId}": {
+      "schema": "DiaryEntry",
+      "description": "User daily reflections"
+    },
+    "/users/{userId}/todos/{todoId}": {
+      "schema": "TodoTask",
+      "description": "User study tasks"
+    },
+    "/users/{userId}/schedule/{scheduleId}": {
+      "schema": "ScheduleItem",
+      "description": "User timetable blocks"
+    },
+    "/users/{userId}/mockExams/{mockExamId}": {
+      "schema": "MockExamRecord",
+      "description": "User mock exam scores"
+    }
+  }
+}
