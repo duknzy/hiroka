@@ -30,7 +30,7 @@ export const ActiveTimerDock: React.FC<ActiveTimerDockProps> = ({
 
   return (
     <aside aria-label="現在計測中のタイマー" className="fixed bottom-5 right-5 sm:right-8 z-40 max-w-md animate-in slide-in-from-bottom-5 duration-300">
-      <div className="bg-slate-900/95 backdrop-blur-xl text-white rounded-2xl p-3 sm:px-4 sm:py-3 shadow-2xl border border-slate-700/60 flex items-center gap-3.5 ring-1 ring-white/10">
+      <div className="bg-[#0b1020]/95 backdrop-blur-2xl text-white rounded-2xl p-3 sm:px-4 sm:py-3 shadow-2xl shadow-black/80 border border-indigo-500/30 flex items-center gap-3.5 ring-1 ring-white/10 glow-indigo">
         {/* Glow indicator */}
         <div className="relative flex items-center justify-center">
           <div

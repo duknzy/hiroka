@@ -135,32 +135,32 @@ export const TimerView: React.FC<TimerViewProps> = ({
     <div
       className={`min-h-[82vh] flex flex-col justify-between rounded-3xl transition-all duration-300 relative overflow-hidden ${
         isFullscreen
-          ? 'fixed inset-0 z-50 bg-slate-950 text-white p-6 sm:p-12 flex flex-col justify-between'
-          : 'bg-white/90 backdrop-blur-md border border-slate-200 p-6 sm:p-8 shadow-xs'
+          ? 'fixed inset-0 z-50 bg-[#070b14] text-white p-6 sm:p-12 flex flex-col justify-between'
+          : 'bg-[#0d1322]/85 backdrop-blur-2xl border border-white/10 p-6 sm:p-8 shadow-2xl shadow-black/50'
       }`}
     >
       {/* Ambient background glow according to selected subject */}
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full blur-3xl opacity-15 pointer-events-none transition-colors duration-700"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full blur-3xl opacity-20 pointer-events-none transition-colors duration-700"
         style={{ backgroundColor: themeColor }}
       />
 
       {/* Top Bar inside View */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span
-              className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-              style={{ backgroundColor: `${themeColor}20`, color: themeColor }}
+              className="text-xs font-bold px-2.5 py-0.5 rounded-full border border-white/10"
+              style={{ backgroundColor: `${themeColor}25`, color: themeColor }}
             >
               {currentSubject?.name || '科目未選択'}
             </span>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+            <span className="text-xs text-slate-500">·</span>
+            <span className="text-xs font-medium text-slate-300">
               {currentMaterial ? currentMaterial.title : '自由演習 / 過去問'}
             </span>
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1 flex items-center gap-2">
+          <h1 className="text-xl font-extrabold text-white tracking-tight mt-1 flex items-center gap-2">
             <Flame className="w-5 h-5" style={{ color: themeColor }} />
             {isBreak ? '☕ 休憩中 · リフレッシュ' : '極限集中フォーカスタイマー'}
           </h1>
@@ -168,14 +168,14 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Info pill: free navigation */}
-          <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 rounded-full text-xs">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 rounded-full text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
             計測中も他の画面（TODOや計画など）へ自由に移動できます
           </div>
 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-xl cursor-pointer transition-colors"
             title={isFullscreen ? '通常表示に戻す' : 'フルスクリーン集中モード'}
           >
             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
@@ -186,21 +186,21 @@ export const TimerView: React.FC<TimerViewProps> = ({
       {/* Center Focus Area */}
       <div className="relative z-10 py-4 sm:py-6 flex flex-col items-center">
         {subjects.length === 0 && (
-          <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs flex items-center gap-2 max-w-md">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className="mb-6 p-3 bg-amber-950/40 border border-amber-500/40 rounded-2xl text-amber-300 text-xs flex items-center gap-2 max-w-md">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
             <span>科目が登録されていません。「科目・参考書」タブから科目を登録してください。</span>
           </div>
         )}
 
         {/* Mode Switcher */}
         <div className="flex flex-col items-center gap-2.5 mb-5 sm:mb-6">
-          <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-semibold">
+          <div className="inline-flex p-1 bg-slate-950/90 border border-white/10 rounded-2xl text-xs font-semibold">
             <button
               onClick={() => changeMode('stopwatch')}
               className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
                 mode === 'stopwatch'
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               ストップウォッチ
@@ -209,8 +209,8 @@ export const TimerView: React.FC<TimerViewProps> = ({
               onClick={() => changeMode('pomodoro')}
               className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
                 mode === 'pomodoro'
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               ポモドーロ (25分)
@@ -219,8 +219,8 @@ export const TimerView: React.FC<TimerViewProps> = ({
               onClick={() => changeMode('countdown')}
               className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
                 mode === 'countdown'
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               カウントダウン
@@ -229,7 +229,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
           {/* Quick presets for countdown */}
           {mode === 'countdown' && (
-            <div className="flex items-center gap-1.5 text-xs pt-1">
+            <div className="flex items-center gap-1.5 text-xs pt-1 flex-wrap justify-center">
               <span className="text-slate-400 text-[11px]">本番目標:</span>
               {[
                 { label: '30分', mins: 30 },
@@ -241,7 +241,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
                 <button
                   key={p.mins}
                   onClick={() => setCustomCountdown(p.mins)}
-                  className="px-2.5 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  className="px-2.5 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer bg-slate-900 border border-white/10 hover:border-indigo-500/50 hover:bg-slate-800 text-slate-300 hover:text-white"
                 >
                   {p.label}
                 </button>
@@ -260,7 +260,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
               r={radius}
               stroke="currentColor"
               strokeWidth="9"
-              className="text-slate-100 dark:text-slate-800"
+              className="text-slate-800/80"
               fill="none"
             />
             {/* Progress Arc: starts at 12 o'clock and fills clockwise (to the right) */}
@@ -276,40 +276,40 @@ export const TimerView: React.FC<TimerViewProps> = ({
               className="transition-all duration-500 ease-linear"
               fill="none"
               style={{
-                filter: isActive ? `drop-shadow(0 0 12px ${themeColor}70)` : undefined,
+                filter: isActive ? `drop-shadow(0 0 14px ${themeColor})` : undefined,
               }}
             />
           </svg>
 
-          {/* Center Digital Clock Display - ample padding prevents any overlap */}
+          {/* Center Digital Clock Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none px-6">
             <div
-              className={`font-mono tabular-nums font-black tracking-tight transition-all flex items-baseline justify-center ${
+              className={`font-mono tabular-nums font-black tracking-tight transition-all flex items-baseline justify-center text-white ${
                 isFullscreen
                   ? hrs > 0
-                    ? 'text-6xl sm:text-7xl md:text-8xl text-white'
-                    : 'text-7xl sm:text-8xl md:text-9xl text-white'
+                    ? 'text-6xl sm:text-7xl md:text-8xl'
+                    : 'text-7xl sm:text-8xl md:text-9xl'
                   : hrs > 0
-                  ? 'text-4xl sm:text-5xl md:text-6xl text-slate-900'
-                  : 'text-5xl sm:text-6xl md:text-7xl text-slate-900'
+                  ? 'text-4xl sm:text-5xl md:text-6xl'
+                  : 'text-5xl sm:text-6xl md:text-7xl'
               }`}
               style={{
-                textShadow: isActive ? `0 0 28px ${themeColor}30` : undefined,
+                textShadow: isActive ? `0 0 30px ${themeColor}` : '0 2px 10px rgba(0,0,0,0.5)',
               }}
             >
               {hrs > 0 && (
                 <>
                   <span>{String(hrs).padStart(2, '0')}</span>
-                  <span className="text-slate-300 dark:text-slate-600 font-light mx-0.5">:</span>
+                  <span className="text-slate-600 font-light mx-0.5">:</span>
                 </>
               )}
               <span>{String(mins).padStart(2, '0')}</span>
-              <span className="text-slate-300 dark:text-slate-600 font-light mx-0.5">:</span>
+              <span className="text-slate-600 font-light mx-0.5">:</span>
               <span>{String(secs).padStart(2, '0')}</span>
             </div>
 
             <div className="flex items-center justify-center mt-3 sm:mt-4">
-              <p className="text-xs sm:text-sm font-semibold text-slate-400">
+              <p className="text-xs sm:text-sm font-medium text-slate-400">
                 {isBreak
                   ? '深呼吸をして脳を休めましょう'
                   : isActive
@@ -324,7 +324,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
         <div className="flex items-center justify-center gap-6 my-5 sm:my-6">
           <button
             onClick={resetTimer}
-            className="p-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all cursor-pointer"
+            className="p-3.5 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all cursor-pointer shadow-md"
             title="リセット"
           >
             <RotateCcw className="w-6 h-6" />
@@ -332,10 +332,10 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
           <button
             onClick={toggleTimer}
-            className="p-6 rounded-full text-white shadow-2xl transition-all active:scale-95 cursor-pointer ring-8 hover:scale-105"
+            className="p-6 rounded-full text-white shadow-2xl transition-all active:scale-95 cursor-pointer ring-8 ring-white/10 hover:ring-white/20 hover:scale-105"
             style={{
               backgroundColor: isActive ? '#F59E0B' : themeColor,
-              boxShadow: `0 10px 30px ${isActive ? '#F59E0B60' : themeColor + '60'}`,
+              boxShadow: `0 0 35px ${isActive ? '#F59E0B80' : themeColor + '80'}`,
             }}
           >
             {isActive ? (
@@ -348,7 +348,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
           <button
             onClick={onFinishTimer}
             disabled={seconds === 0}
-            className="p-3.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-full transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-3.5 text-emerald-400 hover:text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 rounded-full transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shadow-md"
             title="学習を終了して記録に保存"
           >
             <CheckCircle2 className="w-7 h-7" />
@@ -356,10 +356,10 @@ export const TimerView: React.FC<TimerViewProps> = ({
         </div>
 
         {/* Subject & Book Selectors directly under the clock */}
-        <div className="w-full max-w-xl bg-slate-50/90 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs space-y-3">
+        <div className="w-full max-w-xl bg-slate-950/80 p-4 rounded-2xl border border-white/10 text-xs space-y-3 shadow-xl shadow-black/30">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block font-semibold text-slate-300 mb-1">
                 学習科目
               </label>
               <select
@@ -368,10 +368,10 @@ export const TimerView: React.FC<TimerViewProps> = ({
                   setSelectedSubjectId(e.target.value);
                   setSelectedMaterialId('');
                 }}
-                className="w-full font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="w-full font-semibold bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
               >
                 {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>
+                  <option key={s.id} value={s.id} className="bg-slate-900 text-white">
                     {s.name}
                   </option>
                 ))}
@@ -380,13 +380,13 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="font-semibold text-slate-700 dark:text-slate-300">
+                <label className="font-semibold text-slate-300">
                   参考書 / 教材
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowInlineAddMat(!showInlineAddMat)}
-                  className="text-[11px] text-indigo-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5 cursor-pointer transition-colors"
                 >
                   <Plus className="w-3 h-3" />
                   ＋ここから教材を追加
@@ -395,11 +395,11 @@ export const TimerView: React.FC<TimerViewProps> = ({
               <select
                 value={selectedMaterialId}
                 onChange={(e) => setSelectedMaterialId(e.target.value)}
-                className="w-full font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="w-full font-semibold bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="">(選択なし / 自由演習・過去問)</option>
+                <option value="" className="bg-slate-900 text-slate-400">(選択なし / 自由演習・過去問)</option>
                 {availableMaterials.map((m) => (
-                  <option key={m.id} value={m.id}>
+                  <option key={m.id} value={m.id} className="bg-slate-900 text-white">
                     {m.title} ({m.currentUnit}/{m.totalUnits} {m.unitType} · {m.currentLap}周目)
                   </option>
                 ))}
@@ -408,8 +408,8 @@ export const TimerView: React.FC<TimerViewProps> = ({
           </div>
 
           {showInlineAddMat && (
-            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-800 space-y-2 animate-in fade-in duration-150">
-              <span className="font-bold text-slate-900 dark:text-slate-100 block text-[11px]">
+            <div className="p-3 bg-slate-900 rounded-xl border border-indigo-500/40 space-y-2 animate-in fade-in duration-150">
+              <span className="font-bold text-white block text-[11px]">
                 参考書を即座に追加
               </span>
               <div className="flex gap-2">
@@ -418,19 +418,19 @@ export const TimerView: React.FC<TimerViewProps> = ({
                   placeholder="参考書名"
                   value={newMatTitle}
                   onChange={(e) => setNewMatTitle(e.target.value)}
-                  className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-100"
+                  className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-white placeholder-slate-500"
                 />
                 <input
                   type="number"
                   placeholder="総量"
                   value={newMatTotal}
                   onChange={(e) => setNewMatTotal(Number(e.target.value) || 100)}
-                  className="w-16 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 font-mono"
+                  className="w-16 bg-slate-950 border border-white/10 rounded-lg px-2 py-1 font-mono text-white"
                 />
                 <select
                   value={newMatUnitType}
                   onChange={(e) => setNewMatUnitType(e.target.value as any)}
-                  className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1"
+                  className="bg-slate-950 border border-white/10 rounded-lg px-2 py-1 text-white"
                 >
                   <option value="問">問</option>
                   <option value="ページ">頁</option>
@@ -440,7 +440,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
                 <button
                   type="button"
                   onClick={handleCreateInlineMaterial}
-                  className="px-3 py-1 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 cursor-pointer"
+                  className="px-3 py-1 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 cursor-pointer shadow-xs transition-all"
                 >
                   追加
                 </button>
@@ -453,16 +453,16 @@ export const TimerView: React.FC<TimerViewProps> = ({
             placeholder="予定しているページや問題番号 (例: p.50〜p.62 例題8〜14)"
             value={unitNote}
             onChange={(e) => setUnitNote(e.target.value)}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />
         </div>
       </div>
 
       {/* Bottom Audio Synthesizer Bar */}
-      <div className="relative z-10 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-            <Volume2 className="w-4 h-4 text-indigo-500" />
+      <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+            <Volume2 className="w-4 h-4 text-indigo-400" />
             集中BGM環境音:
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -476,10 +476,10 @@ export const TimerView: React.FC<TimerViewProps> = ({
               <button
                 key={s.id}
                 onClick={() => handleSoundChange(s.id as AmbientSoundType)}
-                className={`px-2.5 py-1 text-xs rounded-xl transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs rounded-xl transition-all cursor-pointer ${
                   currentSound === s.id
-                    ? 'bg-indigo-600 text-white font-semibold shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/40 border border-indigo-400/50'
+                    : 'bg-slate-900 border border-white/10 text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 {s.label}
@@ -490,7 +490,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
 
         <div className="flex items-center gap-3">
           {currentSound !== 'none' && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
               <span>音量</span>
               <input
                 type="range"
@@ -499,14 +499,14 @@ export const TimerView: React.FC<TimerViewProps> = ({
                 step="0.05"
                 value={volume}
                 onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                className="w-20 h-1 accent-indigo-600 cursor-pointer"
+                className="w-20 h-1.5 accent-indigo-500 bg-slate-800 rounded-lg cursor-pointer"
               />
             </div>
           )}
 
           <button
             onClick={onOpenDashboard}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer ml-auto"
+            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer ml-auto transition-colors"
           >
             ダッシュボードを見る
             <ArrowRight className="w-3.5 h-3.5" />

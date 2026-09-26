@@ -107,28 +107,28 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Date Navigation Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between">
+      <div className="bg-[#0d1322]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 shadow-xl shadow-black/30 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <button
             onClick={() => changeDateBy(-1)}
-            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 cursor-pointer"
+            className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white cursor-pointer transition-colors"
             title="前日"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono tabular-nums text-lg font-bold text-slate-900">
+            <span className="font-mono tabular-nums text-lg font-bold text-white">
               {selectedDate}
             </span>
             {selectedDate === todayStr && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-950/80 text-indigo-400 border border-indigo-500/30">
                 今日
               </span>
             )}
           </div>
           <button
             onClick={() => changeDateBy(1)}
-            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 cursor-pointer"
+            className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white cursor-pointer transition-colors"
             title="翌日"
           >
             <ChevronRight className="w-5 h-5" />
@@ -138,7 +138,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSelectedDate(todayStr)}
-            className="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 hover:text-white border border-white/10 rounded-xl transition-all cursor-pointer"
           >
             今日へ戻る
           </button>
@@ -146,27 +146,27 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-mono"
+            className="text-xs bg-slate-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-indigo-500"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left (7 cols): Day Timetable (バーチカル時間割) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-7 bg-[#0d1322]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl shadow-black/30">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <Clock className="w-4 h-4 text-cyan-400" />
                 1日のタイムスケジュール (時間割)
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 計画した学習コマを確実に実行していきましょう
               </p>
             </div>
             <button
               onClick={() => setIsAddingBlock(!isAddingBlock)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               予定コマ追加
@@ -177,49 +177,49 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           {isAddingBlock && (
             <form
               onSubmit={handleCreateBlock}
-              className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs"
+              className="mb-4 p-4 bg-slate-900/90 border border-white/10 rounded-xl space-y-3 text-xs"
             >
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div>
-                  <label className="block text-slate-600 font-medium mb-1">開始時刻</label>
+                  <label className="block text-slate-300 font-medium mb-1">開始時刻</label>
                   <input
                     type="time"
                     value={newStartTime}
                     onChange={(e) => setNewStartTime(e.target.value)}
                     required
-                    className="w-full bg-white border border-slate-200 rounded-lg p-1.5 font-mono"
+                    className="w-full bg-slate-950 border border-white/10 text-white rounded-lg p-1.5 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 font-medium mb-1">終了時刻</label>
+                  <label className="block text-slate-300 font-medium mb-1">終了時刻</label>
                   <input
                     type="time"
                     value={newEndTime}
                     onChange={(e) => setNewEndTime(e.target.value)}
                     required
-                    className="w-full bg-white border border-slate-200 rounded-lg p-1.5 font-mono"
+                    className="w-full bg-slate-950 border border-white/10 text-white rounded-lg p-1.5 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 font-medium mb-1">科目</label>
+                  <label className="block text-slate-300 font-medium mb-1">科目</label>
                   <select
                     value={newBlockSubject}
                     onChange={(e) => setNewBlockSubject(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-lg p-1.5"
+                    className="w-full bg-slate-950 border border-white/10 text-white rounded-lg p-1.5"
                   >
                     {subjects.map((s) => (
-                      <option key={s.id} value={s.id}>
+                      <option key={s.id} value={s.id} className="bg-slate-900 text-white">
                         {s.name}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-600 font-medium mb-1">分類</label>
+                  <label className="block text-slate-300 font-medium mb-1">分類</label>
                   <select
                     value={newBlockCategory}
                     onChange={(e) => setNewBlockCategory(e.target.value as any)}
-                    className="w-full bg-white border border-slate-200 rounded-lg p-1.5"
+                    className="w-full bg-slate-950 border border-white/10 text-white rounded-lg p-1.5"
                   >
                     <option value="自習">自習</option>
                     <option value="復習">復習</option>
@@ -231,14 +231,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">内容・学習予定</label>
+                <label className="block text-slate-300 font-medium mb-1">内容・学習予定</label>
                 <input
                   type="text"
                   placeholder="例: 青チャート数ⅡB 微分例題 演習"
                   value={newBlockTitle}
                   onChange={(e) => setNewBlockTitle(e.target.value)}
                   required
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2"
+                  className="w-full bg-slate-950 border border-white/10 text-white placeholder-slate-500 rounded-lg p-2"
                 />
               </div>
 
@@ -246,13 +246,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsAddingBlock(false)}
-                  className="px-3 py-1.5 text-slate-500 hover:bg-slate-200 rounded-lg cursor-pointer"
+                  className="px-3 py-1.5 text-slate-400 hover:text-white rounded-lg cursor-pointer"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg cursor-pointer"
+                  className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm cursor-pointer transition-all"
                 >
                   スケジュールに追加
                 </button>
@@ -263,12 +263,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           {/* Schedule Timeline List */}
           <div className="space-y-2.5">
             {daySchedule.length === 0 ? (
-              <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-xs text-slate-500">この日の予定コマはまだありません。</p>
+              <div className="text-center py-12 bg-slate-900/40 rounded-xl border border-dashed border-white/10">
+                <Clock className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">この日の予定コマはまだありません。</p>
                 <button
                   onClick={() => setIsAddingBlock(true)}
-                  className="mt-2 text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+                  className="mt-2 text-xs font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer"
                 >
                   ＋最初の予定を追加
                 </button>
@@ -279,19 +279,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                    className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
                       item.isCompleted
-                        ? 'bg-slate-50 border-slate-200 opacity-60'
-                        : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
+                        ? 'bg-slate-900/30 border-white/5 opacity-50'
+                        : 'bg-slate-900/80 border-white/10 hover:border-indigo-500/30 shadow-inner shadow-black/20'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => onToggleScheduleItem(item.id)}
-                        className="text-slate-400 hover:text-indigo-600 cursor-pointer"
+                        className="text-slate-500 hover:text-indigo-400 cursor-pointer transition-colors"
                       >
                         {item.isCompleted ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-950" />
                         ) : (
                           <Circle className="w-5 h-5" />
                         )}
@@ -299,14 +299,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                       <div className="text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono tabular-nums font-bold text-slate-900">
+                          <span className="font-mono tabular-nums font-bold text-cyan-400">
                             {item.startTime} - {item.endTime}
                           </span>
                           <span
-                            className="font-medium px-2 py-0.5 rounded text-[10px]"
+                            className="font-medium px-2 py-0.5 rounded-full text-[10px] border border-white/10"
                             style={{
-                              backgroundColor: `${sub?.color || '#3B82F6'}15`,
-                              color: sub?.color || '#3B82F6',
+                              backgroundColor: `${sub?.color || '#3B82F6'}20`,
+                              color: sub?.color || '#60A5FA',
                             }}
                           >
                             {sub?.name || '学習'}
@@ -314,8 +314,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           <span className="text-slate-400 text-[10px]">· {item.category}</span>
                         </div>
                         <p
-                          className={`mt-1 font-medium text-slate-800 ${
-                            item.isCompleted ? 'line-through text-slate-400' : ''
+                          className={`mt-1 font-medium text-slate-200 ${
+                            item.isCompleted ? 'line-through text-slate-500' : ''
                           }`}
                         >
                           {item.title}
@@ -325,7 +325,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                     <button
                       onClick={() => onDeleteScheduleItem(item.id)}
-                      className="p-1 text-slate-300 hover:text-rose-500 rounded cursor-pointer"
+                      className="p-1 text-slate-500 hover:text-rose-400 rounded cursor-pointer transition-colors"
                       title="削除"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -340,38 +340,38 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         {/* Right (5 cols): TODO Checklist & Exam Milestones */}
         <div className="lg:col-span-5 space-y-6">
           {/* Day TODOs */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-[#0d1322]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl shadow-black/30">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <CalendarCheck className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <CalendarCheck className="w-4 h-4 text-emerald-400" />
                 タスク・TODO一覧
               </h2>
               <button
                 onClick={() => setIsAddingTodo(!isAddingTodo)}
-                className="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer transition-colors"
               >
                 ＋タスク追加
               </button>
             </div>
 
             {isAddingTodo && (
-              <form onSubmit={handleCreateTodo} className="mb-3 p-3 bg-slate-50 rounded-xl space-y-2 text-xs">
+              <form onSubmit={handleCreateTodo} className="mb-3 p-3 bg-slate-900 border border-white/10 rounded-xl space-y-2 text-xs">
                 <input
                   type="text"
                   placeholder="やるべきタスク名"
                   value={newTodoTitle}
                   onChange={(e) => setNewTodoTitle(e.target.value)}
                   required
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2"
+                  className="w-full bg-slate-950 border border-white/10 rounded-lg p-2 text-white placeholder-slate-500"
                 />
                 <div className="grid grid-cols-3 gap-2">
                   <select
                     value={newTodoSubject}
                     onChange={(e) => setNewTodoSubject(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-lg p-1.5"
+                    className="bg-slate-950 border border-white/10 rounded-lg p-1.5 text-white"
                   >
                     {subjects.map((s) => (
-                      <option key={s.id} value={s.id}>
+                      <option key={s.id} value={s.id} className="bg-slate-900 text-white">
                         {s.name}
                       </option>
                     ))}
@@ -379,31 +379,31 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   <select
                     value={newTodoPriority}
                     onChange={(e) => setNewTodoPriority(e.target.value as any)}
-                    className="bg-white border border-slate-200 rounded-lg p-1.5"
+                    className="bg-slate-950 border border-white/10 rounded-lg p-1.5 text-white"
                   >
-                    <option value="urgent">最重要 (赤)</option>
-                    <option value="high">重要 (黄)</option>
-                    <option value="normal">通常</option>
+                    <option value="urgent" className="bg-slate-900 text-rose-400">最重要 (赤)</option>
+                    <option value="high" className="bg-slate-900 text-amber-400">重要 (黄)</option>
+                    <option value="normal" className="bg-slate-900 text-slate-300">通常</option>
                   </select>
                   <input
                     type="number"
                     placeholder="所要分"
                     value={newTodoEstimated}
                     onChange={(e) => setNewTodoEstimated(Number(e.target.value) || 30)}
-                    className="bg-white border border-slate-200 rounded-lg p-1.5 font-mono"
+                    className="bg-slate-950 border border-white/10 rounded-lg p-1.5 font-mono text-white"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsAddingTodo(false)}
-                    className="text-slate-500 px-2 py-1"
+                    className="text-slate-400 hover:text-white px-2 py-1"
                   >
                     閉じる
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1 font-semibold text-white bg-indigo-600 rounded-lg"
+                    className="px-3 py-1 font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-xs"
                   >
                     保存
                   </button>
@@ -411,33 +411,33 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               </form>
             )}
 
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-none">
               {dayTodos.map((todo) => {
                 const sub = subjects.find((s) => s.id === todo.subjectId);
                 return (
                   <div
                     key={todo.id}
-                    className={`flex items-start justify-between p-2.5 rounded-xl border text-xs transition-all ${
+                    className={`flex items-start justify-between p-3 rounded-xl border text-xs transition-all ${
                       todo.completed
-                        ? 'bg-slate-50 border-slate-100 opacity-60'
-                        : 'bg-white border-slate-200'
+                        ? 'bg-slate-900/30 border-white/5 opacity-50'
+                        : 'bg-slate-900/80 border-white/10 hover:border-indigo-500/30'
                     }`}
                   >
                     <div className="flex items-start gap-2 flex-1 min-w-0">
                       <button
                         onClick={() => onToggleTodo(todo.id)}
-                        className="mt-0.5 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                        className="mt-0.5 text-slate-500 hover:text-indigo-400 cursor-pointer transition-colors"
                       >
                         {todo.completed ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-950" />
                         ) : (
                           <Circle className="w-4 h-4" />
                         )}
                       </button>
                       <div className="flex-1 min-w-0">
                         <p
-                          className={`font-medium text-slate-800 ${
-                            todo.completed ? 'line-through text-slate-400' : ''
+                          className={`font-medium text-slate-200 ${
+                            todo.completed ? 'line-through text-slate-500' : ''
                           }`}
                         >
                           {todo.title}
@@ -447,7 +447,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           <span>·</span>
                           <span>約{todo.estimatedMinutes}分</span>
                           {todo.priority === 'urgent' && (
-                            <span className="text-rose-600 font-semibold">【最重要】</span>
+                            <span className="text-rose-400 font-bold">【最重要】</span>
                           )}
                         </div>
                       </div>
@@ -455,7 +455,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                     <button
                       onClick={() => onDeleteTodo(todo.id)}
-                      className="p-1 text-slate-300 hover:text-rose-500 rounded cursor-pointer"
+                      className="p-1 text-slate-500 hover:text-rose-400 rounded cursor-pointer transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -466,27 +466,27 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </div>
 
           {/* Exam Milestone Card */}
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <h3 className="text-xs font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+          <div className="bg-[#0d1322]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-5 shadow-xl shadow-black/30">
+            <h3 className="text-xs font-bold text-white mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-indigo-400" />
               入試重要イベントマイルストーン
             </h3>
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
-                <span className="font-medium text-slate-800">大学入学共通テスト 本番</span>
-                <span className="font-mono tabular-nums text-indigo-600 font-semibold">
+              <div className="flex items-center justify-between p-3 bg-slate-900/80 rounded-xl border border-white/5">
+                <span className="font-medium text-slate-200">大学入学共通テスト 本番</span>
+                <span className="font-mono tabular-nums text-indigo-400 font-bold">
                   {target.examDateKyotsu}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
-                <span className="font-medium text-slate-800">国公立2次 / 個別日程</span>
-                <span className="font-mono tabular-nums text-rose-600 font-semibold">
+              <div className="flex items-center justify-between p-3 bg-slate-900/80 rounded-xl border border-white/5">
+                <span className="font-medium text-slate-200">国公立2次 / 個別日程</span>
+                <span className="font-mono tabular-nums text-rose-400 font-bold">
                   {target.examDateSecondary}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
-                <span className="font-medium text-slate-800">出願書類準備・共通テスト利用</span>
-                <span className="text-slate-500">12月中旬〜1月上旬</span>
+              <div className="flex items-center justify-between p-3 bg-slate-900/80 rounded-xl border border-white/5">
+                <span className="font-medium text-slate-200">出願書類準備・共通テスト利用</span>
+                <span className="text-slate-400">12月中旬〜1月上旬</span>
               </div>
             </div>
           </div>

@@ -578,7 +578,12 @@ export default function App() {
   const activeMaterialObj = materials.find((m) => m.id === timerMaterialId);
 
   return (
-    <div className="relative min-h-screen flex flex-col font-sans bg-slate-50 transition-colors">
+    <div className="relative min-h-screen flex flex-col font-sans bg-[#090d16] text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors overflow-x-hidden">
+      {/* Ambient Cyber Neon Glow Orbs in Background */}
+      <div className="fixed top-0 left-1/4 -translate-x-1/2 w-[32rem] h-[32rem] bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -z-0" />
+      <div className="fixed top-32 right-10 w-[28rem] h-[28rem] bg-cyan-600/10 rounded-full blur-3xl pointer-events-none -z-0" />
+      <div className="fixed bottom-10 left-1/3 w-[30rem] h-[30rem] bg-purple-600/8 rounded-full blur-3xl pointer-events-none -z-0" />
+
       {/* Custom Wallpaper Background Layer (Local storage) */}
       {wallpaperSettings.imageUrl && (
         <div
@@ -596,7 +601,7 @@ export default function App() {
           />
           <div
             className={`absolute inset-0 ${
-              wallpaperSettings.overlay === 'dark' ? 'bg-slate-950/25' : 'bg-white/20'
+              wallpaperSettings.overlay === 'dark' ? 'bg-[#090d16]/75' : 'bg-[#090d16]/50'
             }`}
           />
         </div>
@@ -732,14 +737,14 @@ export default function App() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-6 mt-12 text-xs text-slate-500">
+        <footer className="border-t border-white/10 bg-[#0b0f19]/80 backdrop-blur-md py-6 mt-12 text-xs text-slate-400">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800">PassRoute</span>
-              <span>·</span>
-              <span>大学受験 学習計画＆学習時間マネージャー</span>
+              <span className="font-bold text-slate-200 tracking-tight">PassRoute</span>
+              <span className="text-slate-600">·</span>
+              <span className="text-slate-400">大学受験 学習計画＆学習時間マネージャー</span>
             </div>
-            <div className="text-slate-400">
+            <div className="text-slate-500">
               「志望校への最も確実な近道は、日々の1問を正確に解き切ること」
             </div>
           </div>
