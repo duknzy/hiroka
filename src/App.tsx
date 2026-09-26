@@ -659,6 +659,7 @@ export default function App() {
               unitNote={timerUnitNote}
               setUnitNote={setTimerUnitNote}
               seconds={timerSeconds}
+              countdownInitialSec={countdownInitialSec}
               isActive={isTimerActive}
               isBreak={isTimerBreak}
               mode={timerMode}

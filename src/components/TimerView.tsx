@@ -27,6 +27,7 @@ interface TimerViewProps {
   unitNote: string;
   setUnitNote: (note: string) => void;
   seconds: number;
+  countdownInitialSec?: number;
   isActive: boolean;
   isBreak: boolean;
   mode: 'stopwatch' | 'pomodoro' | 'countdown';
@@ -49,6 +50,7 @@ export const TimerView: React.FC<TimerViewProps> = ({
   unitNote,
   setUnitNote,
   seconds,
+  countdownInitialSec = 60 * 60,
   isActive,
   isBreak,
   mode,
@@ -109,17 +111,21 @@ export const TimerView: React.FC<TimerViewProps> = ({
   // Circular progress calculations - Expansive roomy dial (radius 160, diameter 320 in 360x360 box)
   let progressRatio = 0;
   if (mode === 'stopwatch') {
+    // 1 hour per lap, advances smoothly clockwise (to the right)
     progressRatio = (seconds % 3600) / 3600;
   } else if (mode === 'pomodoro') {
     const total = isBreak ? 5 * 60 : 25 * 60;
-    progressRatio = Math.max(0, Math.min(1, (total - seconds) / total));
+    const elapsed = Math.max(0, total - seconds);
+    progressRatio = Math.max(0, Math.min(1, elapsed / total));
   } else {
-    progressRatio = Math.max(0, Math.min(1, seconds / (60 * 60)));
+    // Countdown: advances clockwise (to the right) as study time progresses
+    const total = countdownInitialSec || 60 * 60;
+    const elapsed = Math.max(0, total - seconds);
+    progressRatio = Math.max(0, Math.min(1, elapsed / total));
   }
 
   const radius = 160;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - progressRatio * circumference;
 
   const hrs = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
@@ -257,15 +263,15 @@ export const TimerView: React.FC<TimerViewProps> = ({
               className="text-slate-100 dark:text-slate-800"
               fill="none"
             />
-            {/* Progress Arc */}
+            {/* Progress Arc: starts at 12 o'clock and fills clockwise (to the right) */}
             <circle
               cx="180"
               cy="180"
               r={radius}
               stroke={themeColor}
               strokeWidth="10"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
+              strokeDasharray={`${progressRatio * circumference} ${circumference}`}
+              strokeDashoffset={0}
               strokeLinecap="round"
               className="transition-all duration-500 ease-linear"
               fill="none"
