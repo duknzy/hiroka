@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { auth, db } from './firebase/config';
@@ -46,12 +46,14 @@ import {
 } from './utils/wallpaperStorage';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
+import { TimerView } from './components/TimerView';
+import { ActiveTimerDock } from './components/ActiveTimerDock';
+import { SaveSessionModal } from './components/SaveSessionModal';
 import { PlanView } from './components/PlanView';
 import { ScheduleView } from './components/ScheduleView';
 import { MaterialsView } from './components/MaterialsView';
 import { DiaryView } from './components/DiaryView';
 import { MockExamsView } from './components/MockExamsView';
-import { TimerModal } from './components/TimerModal';
 import { ManualLogModal } from './components/ManualLogModal';
 import { SettingsModal } from './components/SettingsModal';
 import { AuthModal } from './components/AuthModal';
@@ -99,7 +101,7 @@ export default function App() {
     return fb.mockExams || [];
   });
 
-  // Wallpaper settings (Saved to local storage)
+  // Wallpaper settings
   const [wallpaperSettings, setWallpaperSettings] = useState<WallpaperSettings>(() =>
     loadWallpaperSettings()
   );
@@ -107,17 +109,131 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   // Modals
-  const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isManualLogOpen, setIsManualLogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
+  const [isSavePromptOpen, setIsSavePromptOpen] = useState(false);
+  const [completedMinutes, setCompletedMinutes] = useState(0);
 
-  // Quick launch contextual ids
-  const [activeSubjectId, setActiveSubjectId] = useState<string>('');
-  const [activeMaterialId, setActiveMaterialId] = useState<string>('');
+  // Global Continuous Timer State (persists across all tabs!)
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isTimerBreak, setIsTimerBreak] = useState(false);
+  const [timerMode, setTimerMode] = useState<'stopwatch' | 'pomodoro' | 'countdown'>('stopwatch');
+  const [pomodoroTargetSec, setPomodoroTargetSec] = useState(25 * 60);
+  const [countdownInitialSec, setCountdownInitialSec] = useState(60 * 60);
 
-  // 1. Firebase Auth listener with safe anonymous fallback
+  const [timerSubjectId, setTimerSubjectId] = useState<string>('');
+  const [timerMaterialId, setTimerMaterialId] = useState<string>('');
+  const [timerUnitNote, setTimerUnitNote] = useState<string>('');
+
+  const timerIntervalRef = useRef<number | null>(null);
+
+  // Auto pick first subject if not selected
+  useEffect(() => {
+    if (!timerSubjectId && subjects.length > 0) {
+      setTimerSubjectId(subjects[0].id);
+    }
+  }, [subjects, timerSubjectId]);
+
+  // Global continuous timer interval
+  useEffect(() => {
+    if (isTimerActive) {
+      timerIntervalRef.current = window.setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (timerMode === 'stopwatch') {
+            return prev + 1;
+          } else {
+            if (prev <= 1) {
+              handleTimerAutoFinish();
+              return 0;
+            }
+            return prev - 1;
+          }
+        });
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [isTimerActive, timerMode, isTimerBreak]);
+
+  const handleTimerAutoFinish = () => {
+    setIsTimerActive(false);
+    if (timerMode === 'pomodoro') {
+      if (!isTimerBreak) {
+        const studiedMins = Math.round(pomodoroTargetSec / 60);
+        setCompletedMinutes(studiedMins);
+        setIsSavePromptOpen(true);
+        setIsTimerBreak(true);
+        setTimerSeconds(5 * 60);
+      } else {
+        setIsTimerBreak(false);
+        setTimerSeconds(pomodoroTargetSec);
+      }
+    } else {
+      const studiedMins = Math.round(countdownInitialSec / 60);
+      setCompletedMinutes(studiedMins);
+      setIsSavePromptOpen(true);
+    }
+  };
+
+  const handleManualTimerFinish = () => {
+    setIsTimerActive(false);
+    let studiedMins = 0;
+    if (timerMode === 'stopwatch') {
+      studiedMins = Math.max(1, Math.round(timerSeconds / 60));
+    } else if (timerMode === 'pomodoro') {
+      studiedMins = Math.max(1, Math.round((pomodoroTargetSec - timerSeconds) / 60));
+    } else {
+      studiedMins = Math.max(1, Math.round((countdownInitialSec - timerSeconds) / 60));
+    }
+    setCompletedMinutes(studiedMins);
+    setIsSavePromptOpen(true);
+  };
+
+  const handleToggleTimer = () => {
+    setIsTimerActive(!isTimerActive);
+  };
+
+  const handleResetTimer = () => {
+    setIsTimerActive(false);
+    if (timerMode === 'stopwatch') {
+      setTimerSeconds(0);
+    } else if (timerMode === 'pomodoro') {
+      setTimerSeconds(isTimerBreak ? 5 * 60 : pomodoroTargetSec);
+    } else {
+      setTimerSeconds(countdownInitialSec);
+    }
+  };
+
+  const handleChangeTimerMode = (newMode: 'stopwatch' | 'pomodoro' | 'countdown') => {
+    setIsTimerActive(false);
+    setTimerMode(newMode);
+    setIsTimerBreak(false);
+    if (newMode === 'stopwatch') {
+      setTimerSeconds(0);
+    } else if (newMode === 'pomodoro') {
+      setTimerSeconds(25 * 60);
+      setPomodoroTargetSec(25 * 60);
+    } else {
+      setTimerSeconds(60 * 60);
+      setCountdownInitialSec(60 * 60);
+    }
+  };
+
+  const handleSetCustomCountdown = (mins: number) => {
+    setIsTimerActive(false);
+    setTimerMode('countdown');
+    setCountdownInitialSec(mins * 60);
+    setTimerSeconds(mins * 60);
+  };
+
+  // 1. Firebase Auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -127,7 +243,6 @@ export default function App() {
         try {
           await loginAsGuest();
         } catch (e) {
-          // If Anonymous login is not enabled in Firebase console yet, gracefully allow local mode
           setUser(null);
           setAuthLoading(false);
         }
@@ -137,7 +252,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Real-time Firestore listeners for current user
+  // 2. Real-time Firestore listeners
   useEffect(() => {
     if (!user) return;
     const uid = user.uid;
@@ -266,6 +381,34 @@ export default function App() {
     await saveLogDoc(effectiveUid, newLog);
   };
 
+  const handleConfirmSaveSession = async (
+    logData: Omit<StudyLog, 'id' | 'timestamp'>,
+    advanceAmount: number
+  ) => {
+    await handleSaveLog(logData);
+
+    // Update material progress if requested
+    if (advanceAmount > 0 && logData.materialId) {
+      const mat = materials.find((m) => m.id === logData.materialId);
+      if (mat) {
+        const newUnit = Math.min(mat.totalUnits, mat.currentUnit + advanceAmount);
+        let newLap = mat.currentLap;
+        if (newUnit >= mat.totalUnits && mat.currentLap < mat.targetLaps) {
+          newLap += 1;
+        }
+        await handleUpdateMaterial({
+          ...mat,
+          currentUnit: newUnit,
+          currentLap: newLap,
+        });
+      }
+    }
+
+    // Reset timer
+    setTimerSeconds(0);
+    setIsTimerActive(false);
+  };
+
   const handleDeleteLog = async (id: string) => {
     setLogs((prev) => prev.filter((l) => l.id !== id));
     await deleteLogDoc(effectiveUid, id);
@@ -387,31 +530,21 @@ export default function App() {
     await logoutUser();
   };
 
-  // Launch contextual timer from material
+  // Launch contextual timer from material or recent log
   const handleStartTimerForMaterial = (subjectId: string, materialId: string) => {
-    setActiveSubjectId(subjectId);
-    setActiveMaterialId(materialId);
-    setIsTimerOpen(true);
+    setTimerSubjectId(subjectId);
+    setTimerMaterialId(materialId);
+    setActiveTab('timer');
+    // If not active, start right away for maximum responsiveness
+    if (!isTimerActive) {
+      setIsTimerActive(true);
+    }
   };
 
-  // Launch contextual manual log from material
+  // Launch manual log modal for material
   const handleManualLogForMaterial = (subjectId: string, materialId: string) => {
-    setActiveSubjectId(subjectId);
-    setActiveMaterialId(materialId);
-    setIsManualLogOpen(true);
-  };
-
-  // Open default timer
-  const handleOpenGeneralTimer = () => {
-    setActiveSubjectId(subjects[0]?.id || '');
-    setActiveMaterialId('');
-    setIsTimerOpen(true);
-  };
-
-  // Open default manual log
-  const handleOpenGeneralManualLog = () => {
-    setActiveSubjectId(subjects[0]?.id || '');
-    setActiveMaterialId('');
+    setTimerSubjectId(subjectId);
+    setTimerMaterialId(materialId);
     setIsManualLogOpen(true);
   };
 
@@ -440,6 +573,9 @@ export default function App() {
       check.setDate(check.getDate() - 1);
     }
   }
+
+  const activeSubjectObj = subjects.find((s) => s.id === timerSubjectId);
+  const activeMaterialObj = materials.find((m) => m.id === timerMaterialId);
 
   return (
     <div className="relative min-h-screen flex flex-col font-sans bg-slate-50 transition-colors">
@@ -476,8 +612,10 @@ export default function App() {
           streakDays={streakDays}
           user={user}
           hasCustomWallpaper={!!wallpaperSettings.imageUrl}
-          onOpenTimer={handleOpenGeneralTimer}
-          onOpenManualLog={handleOpenGeneralManualLog}
+          isTimerActive={isTimerActive}
+          timerSeconds={timerSeconds}
+          onOpenTimerTab={() => setActiveTab('timer')}
+          onOpenManualLog={() => setIsManualLogOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenWallpaper={() => setIsWallpaperOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
@@ -496,8 +634,8 @@ export default function App() {
               todos={todos}
               schedule={schedule}
               diary={diary}
-              onOpenTimer={handleOpenGeneralTimer}
-              onOpenManualLog={handleOpenGeneralManualLog}
+              onOpenTimer={() => setActiveTab('timer')}
+              onOpenManualLog={() => setIsManualLogOpen(true)}
               onOpenPlan={() => setActiveTab('plan')}
               onOpenDiaryTab={() => setActiveTab('diary')}
               onOpenSettings={() => setIsSettingsOpen(true)}
@@ -507,6 +645,30 @@ export default function App() {
               onAddTodo={handleAddTodo}
               onDeleteLog={handleDeleteLog}
               onSaveDiary={handleSaveDiary}
+            />
+          )}
+
+          {activeTab === 'timer' && (
+            <TimerView
+              subjects={subjects}
+              materials={materials}
+              selectedSubjectId={timerSubjectId}
+              setSelectedSubjectId={setTimerSubjectId}
+              selectedMaterialId={timerMaterialId}
+              setSelectedMaterialId={setTimerMaterialId}
+              unitNote={timerUnitNote}
+              setUnitNote={setTimerUnitNote}
+              seconds={timerSeconds}
+              isActive={isTimerActive}
+              isBreak={isTimerBreak}
+              mode={timerMode}
+              toggleTimer={handleToggleTimer}
+              resetTimer={handleResetTimer}
+              changeMode={handleChangeTimerMode}
+              setCustomCountdown={handleSetCustomCountdown}
+              onFinishTimer={handleManualTimerFinish}
+              onAddMaterial={handleAddMaterial}
+              onOpenDashboard={() => setActiveTab('dashboard')}
             />
           )}
 
@@ -583,31 +745,45 @@ export default function App() {
         </footer>
       </div>
 
-      {/* Floating Modals */}
-      <TimerModal
-        isOpen={isTimerOpen}
-        onClose={() => setIsTimerOpen(false)}
-        subjects={subjects}
-        materials={materials}
-        initialSubjectId={activeSubjectId}
-        initialMaterialId={activeMaterialId}
-        onSaveLog={handleSaveLog}
-        onAddMaterial={handleAddMaterial}
-        onUpdateMaterial={handleUpdateMaterial}
+      {/* Persistent Active Timer Dock: Appears on any tab other than 'timer' when running or paused */}
+      {activeTab !== 'timer' && (isTimerActive || timerSeconds > 0) && (
+        <ActiveTimerDock
+          seconds={timerSeconds}
+          isActive={isTimerActive}
+          subject={activeSubjectObj}
+          material={activeMaterialObj}
+          unitNote={timerUnitNote}
+          onToggleTimer={handleToggleTimer}
+          onFinishTimer={handleManualTimerFinish}
+          onExpandToTimerTab={() => setActiveTab('timer')}
+        />
+      )}
+
+      {/* Save Session Modal (Completion prompt) */}
+      <SaveSessionModal
+        isOpen={isSavePromptOpen}
+        onClose={() => setIsSavePromptOpen(false)}
+        completedMinutes={completedMinutes}
+        subject={activeSubjectObj}
+        material={activeMaterialObj}
+        unitNote={timerUnitNote}
+        onConfirmSave={handleConfirmSaveSession}
       />
 
+      {/* Manual Study Log Modal */}
       <ManualLogModal
         isOpen={isManualLogOpen}
         onClose={() => setIsManualLogOpen(false)}
         subjects={subjects}
         materials={materials}
-        initialSubjectId={activeSubjectId}
-        initialMaterialId={activeMaterialId}
+        initialSubjectId={timerSubjectId}
+        initialMaterialId={timerMaterialId}
         onSaveLog={handleSaveLog}
         onAddMaterial={handleAddMaterial}
         onUpdateMaterial={handleUpdateMaterial}
       />
 
+      {/* Target Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -619,11 +795,13 @@ export default function App() {
         onLogout={handleLogout}
       />
 
+      {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
 
+      {/* Wallpaper Customizer Modal */}
       <WallpaperModal
         isOpen={isWallpaperOpen}
         onClose={() => setIsWallpaperOpen(false)}

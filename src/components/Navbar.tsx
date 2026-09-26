@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab, TargetSchool } from '../types';
-import { Play, PlusCircle, Settings, Flame, User as UserIcon, LogIn, LogOut, Image as ImageIcon } from 'lucide-react';
+import { Play, PlusCircle, Settings, Flame, User as UserIcon, LogIn, LogOut, Image as ImageIcon, Clock } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface NavbarProps {
@@ -10,7 +10,9 @@ interface NavbarProps {
   streakDays: number;
   user: User | null;
   hasCustomWallpaper: boolean;
-  onOpenTimer: () => void;
+  isTimerActive: boolean;
+  timerSeconds: number;
+  onOpenTimerTab: () => void;
   onOpenManualLog: () => void;
   onOpenSettings: () => void;
   onOpenWallpaper: () => void;
@@ -25,7 +27,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   streakDays,
   user,
   hasCustomWallpaper,
-  onOpenTimer,
+  isTimerActive,
+  timerSeconds,
+  onOpenTimerTab,
   onOpenManualLog,
   onOpenSettings,
   onOpenWallpaper,
@@ -44,6 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems: { id: ActiveTab; label: string }[] = [
     { id: 'dashboard', label: 'ダッシュボード' },
+    { id: 'timer', label: '集中タイマー' },
     { id: 'plan', label: '逆算計画' },
     { id: 'schedule', label: '予定・TODO' },
     { id: 'materials', label: '科目・参考書' },
@@ -51,11 +56,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'mock-exams', label: '模試成績' },
   ];
 
+  const formatMiniTime = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Zone 1: Single text element wordmark */}
+          {/* Zone 1: Wordmark */}
           <div className="flex items-center gap-6">
             <button
               onClick={() => setActiveTab('dashboard')}
@@ -68,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Target indicator */}
             {target.name ? (
-              <div className="hidden lg:flex items-center gap-2 text-xs text-slate-500">
+              <div className="hidden xl:flex items-center gap-2 text-xs text-slate-500">
                 <button
                   onClick={onOpenSettings}
                   className="font-medium text-slate-700 hover:text-indigo-600 cursor-pointer"
@@ -96,26 +107,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <button
                 onClick={onOpenSettings}
-                className="hidden lg:inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline font-medium cursor-pointer"
+                className="hidden xl:inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline font-medium cursor-pointer"
               >
                 ＋志望校・目標を設定
               </button>
             )}
           </div>
 
-          {/* Zone 2: 4-6 clean text navigation links */}
-          <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-600">
+          {/* Zone 2: Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-5 text-sm font-medium text-slate-600">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`py-1.5 transition-colors cursor-pointer border-b-2 ${
+                className={`py-1.5 transition-colors cursor-pointer border-b-2 flex items-center gap-1.5 ${
                   activeTab === item.id
                     ? 'text-indigo-600 border-indigo-600 font-semibold'
                     : 'text-slate-600 border-transparent hover:text-slate-900 hover:border-slate-300'
                 }`}
               >
                 {item.label}
+                {item.id === 'timer' && isTimerActive && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                )}
               </button>
             ))}
           </nav>
@@ -131,12 +145,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               手動記録
             </button>
 
+            {/* Quick Timer trigger / indicator */}
             <button
-              onClick={onOpenTimer}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all cursor-pointer hover:shadow"
+              onClick={onOpenTimerTab}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer ${
+                activeTab === 'timer'
+                  ? 'bg-indigo-700 text-white'
+                  : isTimerActive
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-300'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}
             >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              タイマー計測
+              {isTimerActive ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                  <span className="font-mono tabular-nums">{formatMiniTime(timerSeconds)}</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-white" />
+                  タイマー
+                </>
+              )}
             </button>
 
             {/* Custom Wallpaper Button */}
@@ -184,18 +214,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Mobile Bar */}
-      <div className="md:hidden flex items-center justify-around border-t border-slate-200 py-2 bg-white/90 backdrop-blur-md px-2 overflow-x-auto text-xs">
+      <div className="lg:hidden flex items-center justify-around border-t border-slate-200 py-2 bg-white/90 backdrop-blur-md px-2 overflow-x-auto text-xs">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`px-2 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+            className={`px-2 py-1 rounded transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1 ${
               activeTab === item.id
                 ? 'text-indigo-600 font-semibold bg-indigo-50'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {item.label}
+            {item.id === 'timer' && isTimerActive && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            )}
           </button>
         ))}
       </div>

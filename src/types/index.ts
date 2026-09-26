@@ -95,4 +95,4 @@ export interface DiaryEntry {
   rating?: number;
 }
 
-export type ActiveTab = 'dashboard' | 'plan' | 'schedule' | 'materials' | 'diary' | 'mock-exams';
+export type ActiveTab = 'dashboard' | 'timer' | 'plan' | 'schedule' | 'materials' | 'diary' | 'mock-exams';

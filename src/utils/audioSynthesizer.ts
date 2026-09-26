@@ -16,7 +16,9 @@ class SoundSynthesizer {
       this.ctx = new AudioCtx();
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      try {
+        this.ctx.resume().catch(() => {});
+      } catch (e) {}
     }
   }
 
